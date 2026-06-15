@@ -38,7 +38,7 @@
             <h1 class="heading-font text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-widest animate-pulse">
                 COSMO GATEWAY
             </h1>
-            <p id="auth-subtitle" class="text-gray-400 mt-2 text-sm uppercase tracking-wider">Initialize secure pilot login</p>
+            <p id="auth-subtitle" class="text-gray-400 mt-2 text-sm uppercase tracking-wider">Loading Encryption Core...</p>
         </div>
 
         <div class="space-y-4">
@@ -66,7 +66,7 @@
             <div id="login-feedback" class="text-xs font-bold text-center h-4 text-red-400"></div>
 
             <button id="auth-main-btn" onclick="handleAuthAction()" class="w-full heading-font bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold py-3 rounded-lg uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all transform hover:scale-[1.02]">
-                Launch Dashboard
+                Initialize Control Unit
             </button>
         </div>
     </div>
@@ -237,6 +237,7 @@
     </div>
 
     <script>
+        // Replace this URL with your valid Google Apps Script Web App execution macro URL if needed
         const SYNC_API_URL = "https://script.google.com/macros/s/AKfycbwCnrKVLdJXR6Fm1lvlpLx3uZno81bn2y3hfzqZMM4NRroyUisBYi6_6y_yudwLw_EuCg/exec";
 
         let state = {
@@ -248,22 +249,416 @@
             streak: 0
         };
 
-        // Your custom authentication profile details
         let authConfig = {
-            registeredUser: "gamer_beast",
-            registeredPass: "12345",
-            emergencyKey: "22222222"
+            registeredUser: "",
+            registeredPass: "",
+            emergencyKey: ""
         };
 
         const currentYear = 2026;
-        const currentMonth = 5; 
+        const currentMonth = 5; // June (0-indexed)
         let failedAttempts = 0;
+        let isSignUpMode = false;
 
-        async function initApp() {
-            localStorage.setItem('cosmo_v4_auth', JSON.stringify(authConfig));
+        function initApp() {
+            const savedState = localStorage.getItem('cosmo_v4_state');
+            const savedConfig = localStorage.getItem('cosmo_v4_auth');
 
-            try {
-                const response = await fetch(SYNC_API_URL);
-                const result = await response.json();
-                if (result.status === "success" && result.logs.length > 0) {
-                    state.logs = result
+            if (savedConfig) {
+                authConfig = JSON.parse(savedConfig);
+                isSignUpMode = false;
+                document.getElementById('auth-subtitle').innerText = "Initialize secure pilot login";
+                document.getElementById('auth-main-btn').innerText = "Launch Dashboard";
+                document.getElementById('signup-extra-fields').classList.add('hidden');
+            } else {
+                isSignUpMode = true;
+                document.getElementById('auth-subtitle').innerText = "Create New Pilot Terminal Profile";
+                document.getElementById('auth-main-btn').innerText = "Establish Credentials";
+                document.getElementById('signup-extra-fields').classList.remove('hidden');
+            }
+
+            if (savedState) {
+                state = JSON.parse(savedState);
+                if (state.user && !isSignUpMode) {
+                    showDashboard();
+                    return;
+                }
+            }
+
+            if(state.logs.length === 0) {
+                state.logs = [{ id: '1', date: '2026-06-12', mood: '⭐ Stable', bedtime: '22:00', wakeup: '05:00', namaz: ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'], study: 4, water: 6 }];
+            }
+            
+            calculateSystemMetrics();
+            
+            document.getElementById('log-date').value = '2026-06-15';
+            document.getElementById('cal-date').value = '2026-06-15';
+            syncInputToDate();
+        }
+
+        function handleAuthAction() {
+            const userIn = document.getElementById('username').value.trim();
+            const passIn = document.getElementById('password').value;
+            const feedback = document.getElementById('login-feedback');
+            const masterIn = document.getElementById('master-key').value.trim();
+
+            if (isSignUpMode) {
+                const customEmergency = document.getElementById('custom-emergency-key').value.trim();
+                if (!userIn || !passIn || !customEmergency) {
+                    feedback.innerText = "Error: All clearance configuration sectors required.";
+                    return;
+                }
+                
+                authConfig.registeredUser = userIn;
+                authConfig.registeredPass = passIn;
+                authConfig.emergencyKey = customEmergency;
+                
+                localStorage.setItem('cosmo_v4_auth', JSON.stringify(authConfig));
+                state.user = userIn;
+                saveToLocalStorage();
+                
+                isSignUpMode = false;
+                showDashboard();
+            } else {
+                if (failedAttempts >= 3 && masterIn === authConfig.emergencyKey) {
+                    state.user = authConfig.registeredUser;
+                    saveToLocalStorage();
+                    showDashboard();
+                    return;
+                }
+
+                if (userIn === authConfig.registeredUser && passIn === authConfig.registeredPass) {
+                    state.user = userIn;
+                    saveToLocalStorage();
+                    showDashboard();
+                } else {
+                    failedAttempts++;
+                    feedback.innerText = `Invalid Clearance Matrix (${failedAttempts}/3)`;
+                    
+                    if (failedAttempts >= 3) {
+                        feedback.innerText = "Terminal Lockout Active.";
+                        document.getElementById('override-container').classList.remove('hidden');
+                    }
+                }
+            }
+        }
+
+        function handleLogout() {
+            state.user = null;
+            failedAttempts = 0;
+            saveToLocalStorage();
+            document.getElementById('override-container').classList.add('hidden');
+            document.getElementById('master-key').value = "";
+            document.getElementById('username').value = "";
+            document.getElementById('password').value = "";
+            document.getElementById('login-feedback').innerText = "";
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            initApp();
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('welcome-msg').innerText = `Welcome back, Pilot ${state.user}`;
+            calculateSystemMetrics();
+            renderDashboard();
+        }
+
+        function setMoodState(moodVal) {
+            document.getElementById('log-mood').value = moodVal;
+            const modes = { '🚀 Radiant': 'radiant', '⭐ Stable': 'stable', '☁️ Foggy': 'foggy', '💥 Turbulent': 'turbulent' };
+            Object.keys(modes).forEach(key => {
+                document.getElementById(`mood-${modes[key]}`).className = "mood-btn p-2 rounded bg-slate-950 border border-slate-800 text-center text-sm transition-all";
+            });
+            const activeId = `mood-${modes[moodVal]}`;
+            const activeColor = moodVal.includes('🚀') ? 'border-yellow-500 bg-yellow-500/10' : moodVal.includes('⭐') ? 'border-blue-500 bg-blue-500/10' : moodVal.includes('☁️') ? 'border-purple-500 bg-purple-500/10' : 'border-red-500 bg-red-500/10';
+            document.getElementById(activeId).className = `mood-btn p-2 rounded border text-center text-sm ${activeColor} scale-105`;
+        }
+
+        function renderWaterInterface(currentValue = 0) {
+            const container = document.getElementById('water-matrix');
+            container.innerHTML = '';
+            document.getElementById('water-glasses').value = currentValue;
+            document.getElementById('water-count-display').innerText = `${currentValue} / 8 Glasses`;
+
+            for(let i = 1; i <= 10; i++) {
+                const glass = document.createElement('span');
+                glass.className = `water-glass text-xl ${i <= currentValue ? 'opacity-100 filter drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]' : 'opacity-20'}`;
+                glass.innerText = '💧';
+                glass.onclick = () => renderWaterInterface(i);
+                container.appendChild(glass);
+            }
+        }
+
+        function syncInputToDate() {
+            const dateVal = document.getElementById('log-date').value;
+            document.getElementById('active-date-badge').innerText = `Target: ${dateVal}`;
+            const existingLog = state.logs.find(l => l.date === dateVal);
+            if (existingLog) {
+                document.getElementById('edit-log-id').value = existingLog.id;
+                document.getElementById('sleep-bedtime').value = existingLog.bedtime;
+                document.getElementById('sleep-wakeup').value = existingLog.wakeup;
+                document.getElementById('study-hours').value = existingLog.study;
+                setMoodState(existingLog.mood || '⭐ Stable');
+                renderWaterInterface(existingLog.water || 0);
+                ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(n => {
+                    document.getElementById(`namaz-${n}`).checked = existingLog.namaz.includes(n);
+                });
+                document.getElementById('submit-log-btn').innerText = "Update Log Matrix";
+                document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('edit-log-id').value = "";
+                document.getElementById('sleep-bedtime').value = "";
+                document.getElementById('sleep-wakeup').value = "";
+                document.getElementById('study-hours').value = "";
+                setMoodState('⭐ Stable');
+                renderWaterInterface(0);
+                ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(n => {
+                    document.getElementById(`namaz-${n}`).checked = false;
+                });
+                document.getElementById('submit-log-btn').innerText = "Commit Log Vector";
+                document.getElementById('cancel-edit-btn').classList.add('hidden');
+            }
+        }
+
+        function clickCalendarDate(dateString) {
+            document.getElementById('log-date').value = dateString;
+            syncInputToDate();
+        }
+
+        function calculateSystemMetrics() {
+            let pts = 0;
+            state.tasks.forEach(t => { if (t.done) pts += 15; });
+            const sorted = [...state.logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+            sorted.forEach(log => {
+                pts += (log.namaz.length * 20);
+                if (log.namaz.length === 5) pts += 50;
+                pts += Math.floor(log.study * 10);
+                pts += ((log.water || 0) * 5);
+                const sleep = calculateSleepDuration(log.bedtime, log.wakeup);
+                if (sleep >= 6 && sleep <= 9) pts += 40;
+            });
+            
+            let streak = 0;
+            const rev = [...sorted].reverse();
+            for (let i = 0; i < rev.length; i++) {
+                if (rev[i].namaz.length === 5) streak++;
+                else break;
+            }
+            state.points = pts;
+            state.streak = streak;
+        }
+
+        function calculateSleepDuration(b, w) {
+            if (!b || !w) return 0;
+            let bD = new Date(2000, 0, 1, ...b.split(':').map(Number));
+            let wD = new Date(2000, 0, 1, ...w.split(':').map(Number));
+            if (wD < bD) wD.setDate(wD.getDate() + 1);
+            return (wD - bD) / (1000 * 60 * 60);
+        }
+
+        function saveLog(e) {
+            e.preventDefault();
+            const logId = document.getElementById('edit-log-id').value;
+            const date = document.getElementById('log-date').value;
+            const mood = document.getElementById('log-mood').value;
+            const bedtime = document.getElementById('sleep-bedtime').value;
+            const wakeup = document.getElementById('sleep-wakeup').value;
+            const study = parseFloat(document.getElementById('study-hours').value) || 0;
+            const water = parseInt(document.getElementById('water-glasses').value) || 0;
+            const namaz = [];
+            ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(n => {
+                if (document.getElementById(`namaz-${n}`).checked) namaz.push(n);
+            });
+
+            const logPayload = { id: logId || Date.now().toString(), date, mood, bedtime, wakeup, namaz, study, water };
+
+            if (logId) {
+                const idx = state.logs.findIndex(l => l.id === logId);
+                if (idx !== -1) state.logs[idx] = logPayload;
+            } else {
+                state.logs.push(logPayload);
+            }
+
+            // Transmit metrics directly to your Google Sheet deployment
+            if (SYNC_API_URL) {
+                fetch(SYNC_API_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(logPayload)
+                })
+                .then(() => console.log("Data successfully mirrored to cloud array."))
+                .catch(err => console.error("Cloud synchronizer rejected transmission stream:", err));
+            }
+
+            resetLogForm(); calculateSystemMetrics(); saveToLocalStorage(); renderDashboard();
+        }
+
+        function deleteLog(id) {
+            if(confirm("Delete logged date trace configuration?")) {
+                state.logs = state.logs.filter(l => l.id !== id);
+                resetLogForm(); calculateSystemMetrics(); saveToLocalStorage(); renderDashboard();
+            }
+        }
+
+        function resetLogForm() {
+            document.getElementById('edit-log-id').value = "";
+            document.getElementById('metrics-form').reset();
+            document.getElementById('log-date').value = '2026-06-15';
+            syncInputToDate();
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('task-input');
+            state.tasks.push({ id: Date.now().toString(), text: input.value, done: false });
+            input.value = '';
+            calculateSystemMetrics(); saveToLocalStorage(); renderDashboard();
+        }
+
+        function toggleTask(id) {
+            const t = state.tasks.find(tk => tk.id === id);
+            if (t) { t.done = !t.done; calculateSystemMetrics(); saveToLocalStorage(); renderDashboard(); }
+        }
+
+        function deleteTask(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            calculateSystemMetrics(); saveToLocalStorage(); renderDashboard();
+        }
+
+        function addCalendarEvent(e) {
+            e.preventDefault();
+            state.events.push({ id: Date.now().toString(), date: document.getElementById('cal-date').value, text: document.getElementById('cal-text').value });
+            document.getElementById('cal-text').value = '';
+            saveToLocalStorage(); renderDashboard();
+        }
+
+        function deleteCalendarEvent(id) {
+            state.events = state.events.filter(ev => ev.id !== id);
+            saveToLocalStorage(); renderDashboard();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('cosmo_v4_state', JSON.stringify(state));
+        }
+
+        function renderDashboard() {
+            document.getElementById('stat-points').innerText = state.points;
+            document.getElementById('stat-streak').innerText = `${state.streak} Days`;
+            
+            renderCalendarGrid();
+            renderTaskList();
+            renderEventsList();
+            renderLogsTable();
+        }
+
+        function renderCalendarGrid() {
+            const grid = document.getElementById('calendar-days-grid');
+            grid.innerHTML = '';
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                grid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const dayDiv = document.createElement('div');
+                const dateString = `${currentYear}-06-${day.toString().padStart(2, '0')}`;
+                
+                dayDiv.className = "calendar-day p-1 rounded font-bold border border-transparent";
+                dayDiv.innerText = day;
+                
+                const dayLog = state.logs.find(l => l.date === dateString);
+                const hasEvent = state.events.some(e => e.date === dateString);
+
+                if (dayLog) {
+                    if (dayLog.namaz.length === 5) dayDiv.classList.add('bg-pink-950/40', 'text-pink-400', 'border-pink-500/30');
+                    else dayDiv.classList.add('bg-slate-800', 'text-purple-300');
+                } else {
+                    dayDiv.classList.add('text-gray-400');
+                }
+
+                if (hasEvent) {
+                    dayDiv.classList.add('underline', 'decoration-cyan-400', 'decoration-2');
+                }
+
+                dayDiv.onclick = () => clickCalendarDate(dateString);
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function renderTaskList() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            state.tasks.forEach(t => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-slate-950/60 p-2 rounded border border-slate-800 text-xs gap-2";
+                li.innerHTML = `
+                    <span onclick="toggleTask('${t.id}')" class="cursor-pointer flex-1 ${t.done ? 'line-through text-gray-500' : 'text-blue-300'}">
+                        ${t.done ? '✨' : '☄️'} ${t.text}
+                    </span>
+                    <button onclick="deleteTask('${t.id}')" class="text-red-400 hover:text-red-300 font-bold px-1">✕</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function renderEventsList() {
+            const container = document.getElementById('calendar-events-list');
+            container.innerHTML = '';
+            const sortedEvents = [...state.events].sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            sortedEvents.forEach(ev => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-950 border border-slate-800/80 rounded p-2 flex justify-between items-start gap-2 text-amber-300";
+                div.innerHTML = `
+                    <div>
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">${ev.date}</span>
+                        <span>🪐 ${ev.text}</span>
+                    </div>
+                    <button onclick="deleteCalendarEvent('${ev.id}')" class="text-red-400 hover:text-red-300 font-bold text-xs">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderLogsTable() {
+            const tbody = document.getElementById('logs-tbody');
+            tbody.innerHTML = '';
+            
+            if (state.logs.length === 0) {
+                document.getElementById('no-logs-msg').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('no-logs-msg').classList.add('hidden');
+
+            const sortedLogs = [...state.logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sortedLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 border-b border-slate-800/40 text-gray-300";
+                
+                const sleepHrs = calculateSleepDuration(log.bedtime, log.wakeup).toFixed(1);
+                
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-bold text-purple-400">${log.date}</td>
+                    <td class="py-2.5 px-3">🌙 ${sleepHrs}h <span class="text-[10px] text-gray-500">(${log.bedtime}-${log.wakeup})</span></td>
+                    <td class="py-2.5 px-3 font-bold text-pink-400">${log.namaz.length}/5</td>
+                    <td class="py-2.5 px-3 font-bold">${log.mood.split(' ')[0]} | 📚 ${log.study}h | 💧 ${log.water}</td>
+                    <td class="py-2.5 px-3 text-right space-x-2">
+                        <button onclick="clickCalendarDate('${log.date}')" class="text-cyan-400 hover:underline">Edit</button>
+                        <button onclick="deleteLog('${log.id}')" class="text-red-400 hover:underline">Drop</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
