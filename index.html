@@ -192,4 +192,78 @@
                         </div>
                         <form onsubmit="addCalendarEvent(event)" class="mt-3 flex gap-1.5">
                             <input type="date" id="cal-date" required class="bg-slate-950 border border-slate-700 text-xs rounded px-2 py-1 text-white focus:outline-none">
-                            <input type="text" id="cal-text" required placeholder="Event log note..." class="flex-1 bg-slate-950 border border-slate-700 text-xs rounded px-2 py-1
+                            <input type="text" id="cal-text" required placeholder="Event log note..." class="flex-1 bg-slate-950 border border-slate-700 text-xs rounded px-2 py-1 text-white focus:outline-none">
+                            <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 text-xs rounded font-bold transition-all">Add</button>
+                        </form>
+                    </div>
+
+                    <div class="md:col-span-5 bg-slate-900/80 backdrop-blur-md rounded-xl p-6 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h2 class="heading-font text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">☄️ Orbital Tasks</h2>
+                            <form onsubmit="addTask(event)" class="flex gap-1.5 mb-2">
+                                <input type="text" id="task-input" required class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none" placeholder="Task description...">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 rounded font-bold text-xs">+</button>
+                            </form>
+                            <ul id="task-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 backdrop-blur-md rounded-xl p-4 border border-slate-800">
+                    <h2 class="heading-font text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">🪐 Marked Vector Matrix Milestones</h2>
+                    <div id="calendar-events-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs max-h-24 overflow-y-auto"></div>
+                </div>
+
+                <div class="bg-slate-900/80 backdrop-blur-md rounded-xl p-6 border border-slate-800">
+                    <h2 class="heading-font text-md font-bold text-pink-400 mb-3 uppercase tracking-wider">🛸 Historical Mission Databases</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800 uppercase text-gray-400 bg-slate-950/40">
+                                    <th class="py-2.5 px-3">Date</th>
+                                    <th class="py-2.5 px-3">Sleep</th>
+                                    <th class="py-2.5 px-3">Prayers</th>
+                                    <th class="py-2.5 px-3">Metrics</th>
+                                    <th class="py-2.5 px-3 text-right">Terminal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-tbody" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                        <div id="no-logs-msg" class="text-center py-6 text-gray-500 hidden">No logged coordinates found.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYNC_API_URL = "https://script.google.com/macros/s/AKfycbwCnrKVLdJXR6Fm1lvlpLx3uZno81bn2y3hfzqZMM4NRroyUisBYi6_6y_yudwLw_EuCg/exec";
+
+        let state = {
+            user: null,
+            logs: [],
+            tasks: [],
+            events: [],
+            points: 0,
+            streak: 0
+        };
+
+        // Your custom authentication profile details
+        let authConfig = {
+            registeredUser: "gamer_beast",
+            registeredPass: "12345",
+            emergencyKey: "22222222"
+        };
+
+        const currentYear = 2026;
+        const currentMonth = 5; 
+        let failedAttempts = 0;
+
+        async function initApp() {
+            localStorage.setItem('cosmo_v4_auth', JSON.stringify(authConfig));
+
+            try {
+                const response = await fetch(SYNC_API_URL);
+                const result = await response.json();
+                if (result.status === "success" && result.logs.length > 0) {
+                    state.logs = result
