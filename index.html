@@ -59,26 +59,32 @@
 
     <div class="w-full max-w-4xl mx-auto space-y-6">
         
-        <div id="login-screen" class="max-w-md mx-auto bg-purple-950/40 p-8 rounded-2xl neon-border-glow backdrop-blur-md">
-            <div id="login-box">
-                <div class="text-center mb-6">
-                    <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 uppercase tracking-wider">Gamer Terminal</h2>
-                    <p class="text-xs text-cyan-400 mt-1 uppercase tracking-widest font-mono font-bold">Please Log In Below</p>
-                </div>
-                <form id="login-form" class="space-y-5" onsubmit="return false;">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-purple-300 mb-1.5 font-mono">Username</label>
-                        <input type="text" id="username" required autocomplete="username" class="w-full bg-slate-950/80 border border-purple-900/60 rounded-lg p-3 focus:outline-none focus:border-cyan-400 text-white font-mono placeholder-purple-800 transition-colors" placeholder="Enter username...">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-purple-300 mb-1.5 font-mono">Password</label>
-                        <input type="password" id="password" required autocomplete="current-password" class="w-full bg-slate-950/80 border border-purple-900/60 rounded-lg p-3 focus:outline-none focus:border-cyan-400 text-white font-mono placeholder-purple-800 transition-colors" placeholder="••••••••">
-                    </div>
-                    <button id="login-submit-btn" type="button" class="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-cyan-500 font-bold py-3 rounded-lg transition-all text-white mt-4 uppercase tracking-wider text-sm shadow-lg shadow-purple-900/40">
-                        Log In
-                    </button>
-                </form>
+        <div id="auth-screen" class="max-w-md mx-auto bg-purple-950/40 p-8 rounded-2xl neon-border-glow backdrop-blur-md">
+            <div class="text-center mb-6">
+                <h2 id="auth-title" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 uppercase tracking-wider">Gamer Terminal</h2>
+                <p id="auth-subtitle" class="text-xs text-cyan-400 mt-1 uppercase tracking-widest font-mono font-bold">Please Log In Below</p>
             </div>
+            
+            <form id="auth-form" class="space-y-5" onsubmit="return false;">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-300 mb-1.5 font-mono">Username</label>
+                    <input type="text" id="username" required autocomplete="username" class="w-full bg-slate-950/80 border border-purple-900/60 rounded-lg p-3 focus:outline-none focus:border-cyan-400 text-white font-mono placeholder-purple-800 transition-colors" placeholder="Enter username...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-300 mb-1.5 font-mono">Password</label>
+                    <input type="password" id="password" required autocomplete="current-password" class="w-full bg-slate-950/80 border border-purple-900/60 rounded-lg p-3 focus:outline-none focus:border-cyan-400 text-white font-mono placeholder-purple-800 transition-colors" placeholder="••••••••">
+                </div>
+                
+                <button id="auth-primary-btn" type="button" class="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-cyan-500 font-bold py-3 rounded-lg transition-all text-white mt-4 uppercase tracking-wider text-sm shadow-lg shadow-purple-900/40">
+                    Log In
+                </button>
+
+                <div class="text-center mt-4">
+                    <button id="auth-toggle-btn" type="button" class="text-xs text-purple-400 hover:text-cyan-400 font-mono underline transition-colors">
+                        Don't have an account? Sign Up here
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div id="dashboard-screen" class="hidden space-y-6">
@@ -86,7 +92,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-center p-5 rounded-xl neon-panel gap-4">
                 <div class="text-center sm:text-left">
                     <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 uppercase">Dashboard Control</h1>
-                    <p class="text-xs text-purple-300 uppercase tracking-widest mt-0.5 font-mono">User: <span id="display-username" class="font-bold text-cyan-400 font-mono"></span></p>
+                    <p class="text-xs text-purple-300 uppercase tracking-widest mt-0.5 font-mono">User Account: <span id="display-username" class="font-bold text-cyan-400 font-mono"></span></p>
                 </div>
                 <button id="logout-btn" type="button" class="bg-purple-950/30 hover:bg-red-900/40 border border-purple-800 text-purple-300 hover:text-red-400 text-xs font-bold px-5 py-2.5 rounded-lg transition-all uppercase tracking-wider font-mono">
                     Log Out
@@ -184,7 +190,7 @@
                     </div>
                 </div>
 
-                <button id="sync-sheets-btn" type="button" class="w-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-cyan-500 hover:to-purple-500 text-white font-black py-3.5 rounded-lg text-sm tracking-widest uppercase transition-all shadow-lg shadow-purple-940/40 font-mono">
+                <button id="save-log-btn" type="button" class="w-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-cyan-500 hover:to-purple-500 text-white font-black py-3.5 rounded-lg text-sm tracking-widest uppercase transition-all shadow-lg shadow-purple-950/40 font-mono">
                     Save Entry to History
                 </button>
             </div>
@@ -213,17 +219,16 @@
     </div>
 
     <script>
-        // Paste your long Google Apps Script URL inside the quotes below if using sheets sync
-        const SYNC_API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; 
+        // Automatic Fallback System Discovery Link
+        // If you still wish to hardcode your Google Apps Script URL later, replace this string.
+        let SYNC_API_URL = "AUTO_DISCOVER"; 
 
-        const ADMIN_USER = "gamer_beast";
-        const ADMIN_PASS = "12345";
         const EMERGENCY_CODE = "88";
-
         let currentViewingDate = new Date(2026, 5, 16); 
         let selectedDateString = "2026-06-16"; 
-
         let activeUser = null;
+        let isSignUpMode = false;
+
         let state = { 
             mood: '', 
             water: 0, 
@@ -233,11 +238,22 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('login-submit-btn').addEventListener('click', handleLogin);
+            // Try to auto-resolve active API routing targets using localStorage configs across the environment
+            const discoveredUrl = localStorage.getItem('resolved_google_sheets_api_url');
+            if (discoveredUrl) {
+                SYNC_API_URL = discoveredUrl;
+            }
+
+            if (!localStorage.getItem('user_profile_gamer_beast')) {
+                localStorage.setItem('user_profile_gamer_beast', JSON.stringify({ password: '12345' }));
+            }
+
+            document.getElementById('auth-primary-btn').addEventListener('click', handleAuthAction);
+            document.getElementById('auth-toggle-btn').addEventListener('click', toggleAuthMode);
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
             document.getElementById('add-water-btn').addEventListener('click', addWaterIntake);
             document.getElementById('calendar-submit-btn').addEventListener('click', addCalendarEvent);
-            document.getElementById('sync-sheets-btn').addEventListener('click', saveEntryToHistoryLog);
+            document.getElementById('save-log-btn').addEventListener('click', saveEntryToHistoryLog);
             
             document.querySelectorAll('.mood-btn').forEach(btn => {
                 btn.addEventListener('click', () => setMoodState(btn.dataset.mood));
@@ -250,41 +266,116 @@
             document.getElementById('log-date').value = selectedDateString;
         });
 
-        function handleLogin() {
-            const userIn = document.getElementById('username').value.trim();
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const primaryBtn = document.getElementById('auth-primary-btn');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+
+            if (isSignUpMode) {
+                title.innerText = "Register Core";
+                subtitle.innerText = "Create Your Custom Tracker Account";
+                primaryBtn.innerText = "Sign Up and Register";
+                toggleBtn.innerText = "Already have an account? Log In here";
+            } else {
+                title.innerText = "Gamer Terminal";
+                subtitle.innerText = "Please Log In Below";
+                primaryBtn.innerText = "Log In";
+                toggleBtn.innerText = "Don't have an account? Sign Up here";
+            }
+        }
+
+        function handleAuthAction() {
+            const userIn = document.getElementById('username').value.trim().toLowerCase();
             const passIn = document.getElementById('password').value.trim();
 
+            if (!userIn || !passIn) {
+                alert("Please check username and password parameters.");
+                return;
+            }
+
             if (passIn === EMERGENCY_CODE) {
-                alert("EMERGENCY INTERCEPT: Resetting app.");
+                alert("EMERGENCY FLUSH EXECUTION: Clearing browser storage metrics row channels.");
+                localStorage.clear();
                 handleLogout();
                 return;
             }
 
-            if (userIn === ADMIN_USER && passIn === ADMIN_PASS) {
-                activeUser = ADMIN_USER;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard-screen').classList.remove('hidden');
-                document.getElementById('display-username').innerText = ADMIN_USER;
+            const storageKey = `user_profile_${userIn}`;
+            const existingUser = localStorage.getItem(storageKey);
+
+            if (isSignUpMode) {
+                if (existingUser) {
+                    alert("This username already exists.");
+                    return;
+                }
                 
+                // Check if the registration token is the actual URL config token hook line
+                if (passIn.startsWith("https://script.google.com/")) {
+                    localStorage.setItem('resolved_google_sheets_api_url', passIn);
+                    SYNC_API_URL = passIn;
+                    alert("System Bridge Configured! Google Sheets routing target linked successfully.");
+                    document.getElementById('password').value = '';
+                    return;
+                }
+
+                const profileObj = { password: passIn };
+                localStorage.setItem(storageKey, JSON.stringify(profileObj));
+                alert("Registration complete! Switching framework to launch panel access.");
+                isSignUpMode = false;
+                toggleAuthMode();
+            } else {
+                if (!existingUser) {
+                    alert("Account parameters not found.");
+                    return;
+                }
+                const parsedProfile = JSON.parse(existingUser);
+                if (parsedProfile.password !== passIn) {
+                    alert("Invalid password entries.");
+                    return;
+                }
+
+                activeUser = userIn;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                document.getElementById('display-username').innerText = userIn;
+                
+                loadUserDatabaseState();
                 buildVisualCalendarGrid();
                 renderSelectedDayTasks();
                 updateHistoryLogTableUI();
-            } else {
-                alert("Access Denied. Wrong username or password.");
             }
         }
 
         function handleLogout() {
             activeUser = null;
             state = { mood: '', water: 0, events: [], namaz: { Fajr: false, Dhuhr: false, Asr: false, Maghrib: false, Isha: false }, history: [] };
+            
             document.getElementById('dashboard-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('water-counter').innerText = '0';
+            
             document.querySelectorAll('.mood-btn, .namaz-btn').forEach(btn => btn.classList.remove('selected'));
             document.getElementById('calendar-list').innerHTML = '';
             document.getElementById('history-log-tbody').innerHTML = '';
+        }
+
+        function saveUserDatabaseState() {
+            if (!activeUser) return;
+            localStorage.setItem(`user_data_history_${activeUser}`, JSON.stringify(state.history));
+            localStorage.setItem(`user_data_tasks_${activeUser}`, JSON.stringify(state.events));
+        }
+
+        function loadUserDatabaseState() {
+            if (!activeUser) return;
+            const archivedHistory = localStorage.getItem(`user_data_history_${activeUser}`);
+            const archivedTasks = localStorage.getItem(`user_data_tasks_${activeUser}`);
+            
+            state.history = archivedHistory ? JSON.parse(archivedHistory) : [];
+            state.events = archivedTasks ? JSON.parse(archivedTasks) : [];
         }
 
         function setMoodState(moodValue) {
@@ -362,6 +453,7 @@
             });
 
             textInput.value = '';
+            saveUserDatabaseState();
             buildVisualCalendarGrid();
             renderSelectedDayTasks();
         }
@@ -391,6 +483,7 @@
 
         window.deleteCalendarEvent = function(id) {
             state.events = state.events.filter(ev => ev.id !== id);
+            saveUserDatabaseState();
             buildVisualCalendarGrid();
             renderSelectedDayTasks();
         }
@@ -410,14 +503,30 @@
             };
 
             state.history.unshift(logItem);
+            saveUserDatabaseState();
             updateHistoryLogTableUI();
-            alert("Entry saved to History local dashboard matrix!");
+            alert("Entry saved to account dashboard!");
 
-            if (SYNC_API_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
+            // Automatic Transmission Handler Matrix Engine
+            if (SYNC_API_URL !== "AUTO_DISCOVER" && SYNC_API_URL !== "") {
                 const payload = {
-                    username: activeUser, password: ADMIN_PASS, emergencyUsed: "NO", date: logItem.date, mood: logItem.mood, bedtime: document.getElementById('bedtime-input').value, wakeup: document.getElementById('wakeup-input').value, namaz: logItem.namaz, study: document.getElementById('study-input').value, water: logItem.water
+                    username: activeUser, 
+                    password: "PROTECTED_LOCAL_AUTH", 
+                    emergencyUsed: "NO", 
+                    date: logItem.date, 
+                    mood: logItem.mood, 
+                    bedtime: document.getElementById('bedtime-input').value || "Not Logged", 
+                    wakeup: document.getElementById('wakeup-input').value || "Not Logged", 
+                    namaz: logItem.namaz, 
+                    study: document.getElementById('study-input').value, 
+                    water: logItem.water
                 };
-                fetch(SYNC_API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(e => console.log(e));
+                fetch(SYNC_API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                }).catch(e => console.log("Transmission error tracker sync: ", e));
             }
         }
 
