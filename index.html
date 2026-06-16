@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Dashboard - Multi-User Sync Ecosystem</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Space Control Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; }
-        .neon-border { border: 1px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
-        .selected { background-color: #7c3aed !important; border-color: #a78bfa !important; }
+        body { background-color: #0b0f19; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .neon-border { border: 1px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+        .selected { background-color: #7c3aed !important; border-color: #a78bfa !important; color: #ffffff !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -16,373 +16,165 @@
     <div class="max-w-4xl mx-auto">
         
         <div id="login-screen" class="max-w-md mx-auto mt-12 bg-gray-900 p-6 rounded-lg neon-border">
-            
             <div id="login-box">
-                <h2 class="text-2xl font-bold text-blue-400 mb-4 text-center">Dashboard Terminal Access</h2>
-                <form id="login-form" class="space-y-4">
+                <h2 class="text-2xl font-bold text-blue-400 mb-4 text-center tracking-wide">Terminal Login</h2>
+                <form id="login-form" class="space-y-4" onsubmit="return false;">
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Username</label>
-                        <input type="text" id="username" required class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-blue-500 text-white">
+                        <label class="block text-sm font-semibold mb-1 text-gray-300">Username</label>
+                        <input type="text" id="username" required autocomplete="username" class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-blue-500 text-white">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Password</label>
-                        <input type="password" id="password" required class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-blue-500 text-white">
+                        <label class="block text-sm font-semibold mb-1 text-gray-300">Password</label>
+                        <input type="password" id="password" required autocomplete="current-password" class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-blue-500 text-white">
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-2 rounded transition-colors text-white">Authenticate</button>
+                    <button id="login-submit-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-2 rounded transition-colors text-white mt-2">Access Dashboard</button>
                 </form>
-                <p class="text-xs text-gray-400 mt-4 text-center">
-                    New crew member? <button id="to-signup-btn" class="text-blue-400 underline hover:text-blue-300">Create an Account</button>
-                </p>
-            </div>
-
-            <div id="signup-box" class="hidden">
-                <h2 class="text-2xl font-bold text-purple-400 mb-4 text-center">Register New User Profile</h2>
-                <form id="signup-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Choose Username</label>
-                        <input type="text" id="signup-username" required class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-purple-500 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Secure Password</label>
-                        <input type="password" id="signup-password" required class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-purple-500 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Emergency Override Code</label>
-                        <input type="password" id="signup-emergency" placeholder="Defaults to 22222222" class="w-full bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none focus:border-purple-500 text-white">
-                    </div>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 font-bold py-2 rounded transition-colors text-white">Register Profile</button>
-                </form>
-                <p class="text-xs text-gray-400 mt-4 text-center">
-                    Already registered? <button id="to-login-btn" class="text-purple-400 underline hover:text-purple-300">Back to Login</button>
-                </p>
             </div>
         </div>
 
         <div id="dashboard-screen" class="hidden space-y-6">
-            
             <div class="flex justify-between items-center bg-gray-900 p-4 rounded-lg neon-border">
                 <div>
-                    <h1 class="text-xl font-bold text-blue-400">Tactical Control Dashboard</h1>
-                    <p class="text-sm text-gray-400">Authenticated Crew: <span id="display-username" class="font-bold text-white"></span></p>
+                    <h1 class="text-xl font-bold text-blue-400 tracking-wide">System Control Matrix</h1>
+                    <p class="text-sm text-gray-400">User: <span id="display-username" class="font-bold text-white"></span></p>
                 </div>
-                <button id="logout-btn" class="bg-red-600 hover:bg-red-500 text-xs font-bold px-3 py-1.5 rounded transition-colors text-white">Secure Logout</button>
+                <button id="logout-btn" type="button" class="bg-red-600 hover:bg-red-500 text-xs font-bold px-4 py-2 rounded text-white">Logout</button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
                 <div class="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                    <h3 class="text-lg font-semibold text-purple-400 mb-3">Daily Condition Logging</h3>
+                    <h3 class="text-md font-bold uppercase text-purple-400 mb-3 tracking-wider">Condition Tracking Log</h3>
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button" data-mood="Energetic" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm font-medium transition-all">⚡ Energetic</button>
-                        <button type="button" data-mood="Focused" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm font-medium transition-all">🎯 Focused</button>
-                        <button type="button" data-mood="Fatigued" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm font-medium transition-all">💤 Fatigued</button>
+                        <button type="button" data-mood="Energetic" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm text-gray-200">⚡ Energetic</button>
+                        <button type="button" data-mood="Focused" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm text-gray-200">🎯 Focused</button>
+                        <button type="button" data-mood="Fatigued" class="mood-btn bg-gray-800 hover:bg-gray-700 p-3 rounded text-sm text-gray-200">💤 Fatigued</button>
                     </div>
                 </div>
 
                 <div class="bg-gray-900 p-4 rounded-lg border border-gray-800 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold text-blue-400 mb-1">Hydration Levels</h3>
-                        <p class="text-2xl font-black text-white my-2" id="water-counter">0 ml</p>
+                        <h3 class="text-md font-bold uppercase text-blue-400 mb-1 tracking-wider">Hydration Subsystem</h3>
+                        <p class="text-3xl font-black text-white my-2" id="water-counter">0 ml</p>
                     </div>
-                    <button id="add-water-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded text-sm font-bold transition-colors">Consumed 250ml</button>
+                    <button id="add-water-btn" type="button" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded text-sm font-bold text-white">Log 250ml Volume</button>
                 </div>
-
-            </div>
-
-            <div class="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                <h3 class="text-lg font-semibold text-green-400 mb-3">Target Log Flight Matrix</h3>
-                <form id="calendar-form" class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-                    <input type="date" id="cal-date" required class="bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
-                    <input type="text" id="cal-text" required placeholder="Event description details..." class="bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
-                    <button type="submit" class="bg-green-600 hover:bg-green-500 font-bold text-sm rounded transition-colors py-2">Add Flight Event</button>
-                </form>
-                <ul id="calendar-list" class="max-h-40 overflow-y-auto pr-1">
-                    </ul>
             </div>
 
             <div class="bg-gray-900 p-4 rounded-lg border border-gray-800 space-y-4">
-                <h3 class="text-lg font-semibold text-yellow-400">Google Sheets Baseline Payload Compilation</h3>
-                
+                <h3 class="text-md font-bold uppercase text-yellow-400 tracking-wider">Spreadsheet Mirror Data Stream</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Target Date</label>
                         <input type="date" id="log-date" value="2026-06-16" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Bedtime Log</label>
+                        <label class="block text-xs text-gray-400 mb-1">Bedtime</label>
                         <input type="time" id="bedtime-input" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Wakeup Log</label>
+                        <label class="block text-xs text-gray-400 mb-1">Wakeup</label>
                         <input type="time" id="wakeup-input" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Namaz Count</label>
-                        <select id="namaz-select" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none">
-                            <option value="0">0</option><option value="1">1</option><option value="2">2</option>
-                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                        <label class="block text-xs text-gray-400 mb-1">Prayer Log</label>
+                        <select id="namaz-select" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Study Hours</label>
+                        <label class="block text-xs text-gray-400 mb-1">Study (Hrs)</label>
                         <input type="number" id="study-input" min="0" max="24" value="0" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
                     </div>
                 </div>
-
-                <button id="sync-sheets-btn" type="button" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2.5 rounded transition-all">
-                    Sync Session Metrics to Google Sheets Endpoint
+                <button id="sync-sheets-btn" type="button" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2.5 rounded">
+                    Compile and Transmit Metrics Payload
                 </button>
             </div>
-
         </div>
-
     </div>
 
     <script>
-        // Set your cloud endpoint address configuration parameter string below
+        // PASTE YOUR GOOGLE WEB APP URL HERE BETWEEN THE QUOTES
         const SYNC_API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; 
 
-        let currentUser = null;
-        let state = {
-            mood: '',
-            water: 0,
-            events: []
-        };
+        // Hardcoded Master Admin Account Setup
+        const ADMIN_USER = "gamer_beast";
+        const ADMIN_PASS = "12345";
+        const EMERGENCY_CODE = "88";
+
+        let activeUser = null;
+        let state = { mood: '', water: 0 };
 
         document.addEventListener('DOMContentLoaded', () => {
-            initApp();
-        });
-
-        function initApp() {
-            // Screen Toggles
-            const toSignupBtn = document.getElementById('to-signup-btn');
-            const toLoginBtn = document.getElementById('to-login-btn');
-            
-            if (toSignupBtn) {
-                toSignupBtn.addEventListener('click', () => {
-                    document.getElementById('login-box').classList.add('hidden');
-                    document.getElementById('signup-box').classList.remove('hidden');
-                });
-            }
-            if (toLoginBtn) {
-                toLoginBtn.addEventListener('click', () => {
-                    document.getElementById('signup-box').classList.add('hidden');
-                    document.getElementById('login-box').classList.remove('hidden');
-                });
-            }
-
-            // Forms submissions hook targets
-            const loginForm = document.getElementById('login-form');
-            if (loginForm) loginForm.addEventListener('submit', handleLogin);
-
-            const signupForm = document.getElementById('signup-form');
-            if (signupForm) signupForm.addEventListener('submit', handleSignup);
-
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-
-            // Interface Control element lists mapping 
-            const moodButtons = document.querySelectorAll('.mood-btn');
-            moodButtons.forEach(btn => {
+            document.getElementById('login-submit-btn').addEventListener('click', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('add-water-btn').addEventListener('click', addWaterIntake);
+            document.getElementById('sync-sheets-btn').addEventListener('click', syncToGoogleSheets);
+            document.querySelectorAll('.mood-btn').forEach(btn => {
                 btn.addEventListener('click', () => setMoodState(btn.dataset.mood));
             });
+        });
 
-            const waterBtn = document.getElementById('add-water-btn');
-            if (waterBtn) waterBtn.addEventListener('click', addWaterIntake);
+        function handleLogin() {
+            const userIn = document.getElementById('username').value.trim();
+            const passIn = document.getElementById('password').value.trim();
 
-            const calendarForm = document.getElementById('calendar-form');
-            if (calendarForm) calendarForm.addEventListener('submit', addCalendarEvent);
-
-            const syncBtn = document.getElementById('sync-sheets-btn');
-            if (syncBtn) syncBtn.addEventListener('click', syncToGoogleSheets);
-        }
-
-        // Database Access Read / Write operations mapping
-        function getUsersFromStorage() {
-            const users = localStorage.getItem('app_users');
-            return users ? JSON.parse(users) : {};
-        }
-
-        function saveUsersToStorage(users) {
-            localStorage.setItem('app_users', JSON.stringify(users));
-        }
-
-        function saveCurrentState() {
-            if (!currentUser) return;
-            const users = getUsersFromStorage();
-            if (users[currentUser]) {
-                users[currentUser].userData = state;
-                saveUsersToStorage(users);
-            }
-        }
-
-        // Account Registration Control Logic
-        function handleSignup(e) {
-            e.preventDefault();
-            const userIn = document.getElementById('signup-username').value.trim();
-            const passIn = document.getElementById('signup-password').value;
-            const emergencyIn = document.getElementById('signup-emergency').value || "22222222";
-
-            if (!userIn || !passIn) {
-                alert("Please complete required credential inputs.");
-                return;
-            }
-
-            const users = getUsersFromStorage();
-
-            if (users[userIn.toLowerCase()]) {
-                alert("This username registration handle is unavailable.");
-                return;
-            }
-
-            users[userIn.toLowerCase()] = {
-                username: userIn,
-                password: passIn,
-                emergencyCode: emergencyIn,
-                userData: { mood: '', water: 0, events: [] }
-            };
-
-            saveUsersToStorage(users);
-            alert("Account registered successfully! Ready for secure authentication.");
-            
-            document.getElementById('signup-box').classList.add('hidden');
-            document.getElementById('login-box').classList.remove('hidden');
-        }
-
-        // Session Access Gatekeeper Logic
-        function handleLogin(e) {
-            e.preventDefault();
-            const userIn = document.getElementById('username').value.trim().toLowerCase();
-            const passIn = document.getElementById('password').value;
-
-            const users = getUsersFromStorage();
-            const targetUser = users[userIn];
-
-            if (!targetUser) {
-                alert("Access Denied. Matching account reference not identified.");
-                return;
-            }
-
-            if (passIn === targetUser.emergencyCode) {
-                alert("Emergency Code Intercept. Destroying temporary profile footprints.");
+            // Emergency Override Trigger check
+            if (passIn === EMERGENCY_CODE) {
+                alert("EMERGENCY INTERCEPT: Clearing session parameters.");
                 handleLogout();
                 return;
             }
 
-            if (passIn === targetUser.password) {
-                currentUser = userIn;
-                state = targetUser.userData || { mood: '', water: 0, events: [] };
-
+            // Admin Authorization Verification
+            if (userIn === ADMIN_USER && passIn === ADMIN_PASS) {
+                activeUser = ADMIN_USER;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
-                
-                document.getElementById('display-username').innerText = targetUser.username;
-                document.getElementById('water-counter').innerText = `${state.water} ml`;
-                setMoodState(state.mood);
-                renderCalendarEvents();
+                document.getElementById('display-username').innerText = ADMIN_USER;
             } else {
-                alert("Invalid passphrase reference.");
+                alert("Access Denied. Invalid credentials row match.");
             }
         }
 
         function handleLogout() {
-            if (currentUser) {
-                saveCurrentState();
-            }
-            currentUser = null;
-            state = { mood: '', water: 0, events: [] };
-            
+            activeUser = null;
+            state = { mood: '', water: 0 };
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
-            
-            // Wipe runtime visual state
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
 
-        // Metrics Logging Pipeline
         function setMoodState(moodValue) {
             state.mood = moodValue;
             document.querySelectorAll('.mood-btn').forEach(btn => {
-                if (btn.dataset.mood === moodValue) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
+                btn.classList.toggle('selected', btn.dataset.mood === moodValue);
             });
-            saveCurrentState();
         }
 
         function addWaterIntake() {
             state.water += 250;
             document.getElementById('water-counter').innerText = `${state.water} ml`;
-            saveCurrentState();
         }
 
-        // Calendar Array Manipulation Functions
-        function addCalendarEvent(e) {
-            e.preventDefault();
-            const dateInput = document.getElementById('cal-date');
-            const textInput = document.getElementById('cal-text');
-            
-            if (!dateInput.value || !textInput.value) return;
-
-            state.events.push({
-                id: Date.now().toString(),
-                date: dateInput.value,
-                text: textInput.value
-            });
-
-            renderCalendarEvents();
-            saveCurrentState();
-            textInput.value = '';
-        }
-
-        function renderCalendarEvents() {
-            const listContainer = document.getElementById('calendar-list');
-            if (!listContainer) return;
-            listContainer.innerHTML = '';
-
-            state.events.forEach(ev => {
-                const li = document.createElement('li');
-                li.className = "flex justify-between items-center p-2 bg-gray-800 rounded mb-2 text-sm border border-gray-700";
-                li.innerHTML = `
-                    <span><strong>${ev.date}:</strong> ${ev.text}</span>
-                    <button onclick="deleteCalendarEvent('${ev.id}')" class="text-red-500 hover:text-red-400 font-bold px-2">✕</button>
-                `;
-                listContainer.appendChild(li);
-            });
-        }
-
-        // Global scoped event link to execute string filtering
-        window.deleteCalendarEvent = function(id) {
-            state.events = state.events.filter(ev => ev.id !== id);
-            renderCalendarEvents();
-            saveCurrentState();
-        }
-
-        // Cloud API Compilation and Dispatch 
         function syncToGoogleSheets() {
-            const targetDate = document.getElementById('log-date').value;
-            const bedtime = document.getElementById('bedtime-input').value;
-            const wakeup = document.getElementById('wakeup-input').value;
-            const namazCount = document.getElementById('namaz-select').value;
-            const studyHours = document.getElementById('study-input').value;
-
-            const logPayload = {
-                user: currentUser,
-                date: targetDate,
+            const payload = {
+                username: activeUser,
+                password: ADMIN_PASS, // Sends your configured password field
+                emergencyUsed: (document.getElementById('password').value === EMERGENCY_CODE) ? "YES" : "NO",
+                date: document.getElementById('log-date').value,
                 mood: state.mood || "Unassigned",
-                bedtime: bedtime || "Not Tracked",
-                wakeup: wakeup || "Not Tracked",
-                namaz: namazCount,
-                study: studyHours,
+                bedtime: document.getElementById('bedtime-input').value || "Not Logged",
+                wakeup: document.getElementById('wakeup-input').value || "Not Logged",
+                namaz: document.getElementById('namaz-select').value,
+                study: document.getElementById('study-input').value,
                 water: `${state.water} ml`
             };
 
             if (SYNC_API_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
-                alert("Data localized inside engine, but API Sync URL target has not yet been configured in the codebase script.");
-                console.log("Payload compiled ready for delivery:", logPayload);
+                alert("Local verification passed! Add your real Google Script URL to run the live cloud sync.");
+                console.log("Payload compiled:", payload);
                 return;
             }
 
@@ -390,15 +182,10 @@
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(logPayload)
+                body: JSON.stringify(payload)
             })
-            .then(() => {
-                alert(`Data stream successfully dispatched to Google Sheets for profile user: ${currentUser}`);
-            })
-            .catch(err => {
-                console.error("Cloud Endpoint Pipeline Abort Fault: ", err);
-                alert("Communication execution failed with cloud server macro deployment.");
-            });
+            .then(() => alert("Data packet successfully dispatched to Google Sheets row connection!"))
+            .catch(err => alert("Sync execution transmission error: " + err));
         }
     </script>
 </body>
